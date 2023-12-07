@@ -73,6 +73,9 @@ def plot_images(distribution):
 
 
 def main():
+    if len(sys.argv) < 2:
+        print("Program needs at least one argument: ./path_to_images")
+        return 1
     distribution = Distribution(sys.argv[1])
     plot_images(distribution)
 
