@@ -5,6 +5,9 @@ import distinctipy
 
 class Distribution:
     def __init__(self, path_name):
+        if not os.path.exists(path_name):
+            print("Given path name doesn't exist")
+            exit()
         self.path_name = path_name # original path name, sys.argv[1]
         self.categories = set() # set of categories: "Apple", "Grappe"...
         self.subdirectories = set() # set of subdirectories: "Apple_healthy", "Apple_rust"...
