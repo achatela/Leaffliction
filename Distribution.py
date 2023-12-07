@@ -15,7 +15,21 @@ class Distribution:
         
         self.parse_files()
         self.get_arborescence()
-    
+        self.fill_augmentation_needed()
+
+
+    def fill_augmentation_needed(self):
+        for category in self.categories:
+            len_name_list = [] # array of tuples: (subdirectory_name, number of images)
+            for subdirectory in self.arborescence[category]:
+                len_name_list.append((subdirectory, len(self.arborescence[category][subdirectory])))
+            
+            max_tuple = max(len_name_list, key=lambda x: x[1])
+            len_name_list.remove(max_tuple)
+            for tup in len_name_list:
+                self.augmentations_needed.append((tup[0], max_tuple[1] - tup[1]))
+
+
     def parse_files(self):
         for path, subdirs, files in os.walk(self.path_name):
             self.subdirectories.update(subdirs)
@@ -23,6 +37,7 @@ class Distribution:
                 self.images_path.append(os.path.join(path, name))
         for subdirectory in self.subdirectories:
             self.categories.update([subdirectory.split('_')[0]])
+
 
     def get_arborescence(self):
         for category in self.categories:
