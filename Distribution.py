@@ -1,10 +1,11 @@
 import os
 import sys
 import matplotlib.pyplot as plt
+import distinctipy
 
 
 def main():
-    
+    highest = float("-inf")
     subdirectories = set()
     categories = set()
     images_path = []
@@ -22,25 +23,31 @@ def main():
         for subdirectory in subdirectories:
             if category.lower() in subdirectory.lower():
                 arborescence[category][subdirectory] = []
+        if highest < len(arborescence[category]):
+            highest = len(arborescence[category])
 
+    print(highest)
     print(arborescence)
     for path in images_path:
         subdirectory_name = path.split("/")[path.count("/") - 1]
         category = subdirectory_name.split("_")[0]
         arborescence[category][subdirectory_name].append(path)
 
+    color_set = distinctipy.get_colors(highest * len(categories))
+    i = 0
     for category in categories:
         tuple_test = []
         for sub in arborescence[category]:
-            tuple_test.append((sub, len(arborescence[category][sub])))
+            tuple_test.append((sub, len(arborescence[category][sub]), color_set[i]))
+            i += 1
 
         tuple_test.sort(key=lambda x: x[1], reverse=True)
 
         fig, ax = plt.subplots()
-        ax.pie([x[1] for x in tuple_test], labels=[x[0] for x in tuple_test], autopct='%1.1f%%')
+        ax.pie([x[1] for x in tuple_test], labels=[x[0] for x in tuple_test], autopct='%1.1f%%', colors=[x[2] for x in tuple_test])
         plt.title(category + " class distribution")
         plt.show()
-        plt.bar([x[0] for x in tuple_test], [x[1] for x in tuple_test])
+        plt.bar([x[0] for x in tuple_test], [x[1] for x in tuple_test], color=[x[2] for x in tuple_test])
         plt.show()
 
 if __name__ == "__main__":
