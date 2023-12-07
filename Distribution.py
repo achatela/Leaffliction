@@ -33,22 +33,16 @@ def main():
         category = subdirectory_name.split("_")[0]
         arborescence[category][subdirectory_name].append(path)
 
-    color_set = distinctipy.get_colors(highest * len(categories))
-    i = 0
-    j = 0
+    color_set = iter(distinctipy.get_colors(highest * len(categories)))
     fig, ax = plt.subplots(len(categories), 2)
-    for category in categories:
+    for i, category in enumerate(categories):
         tuple_test = []
         for sub in arborescence[category]:
-            tuple_test.append((sub, len(arborescence[category][sub]), color_set[i]))
-            i += 1
-
+            tuple_test.append((sub, len(arborescence[category][sub]), next(color_set)))
         tuple_test.sort(key=lambda x: x[1], reverse=True)
-
-        ax[j, 0].pie([x[1] for x in tuple_test], labels=[x[0] for x in tuple_test], autopct='%1.1f%%', colors=[x[2] for x in tuple_test])
-        ax[j, 0].set_title(category + " class distribution")
-        ax[j, 1].bar([x[0] for x in tuple_test], [x[1] for x in tuple_test], color=[x[2] for x in tuple_test])
-        j += 1
+        ax[i, 0].pie([x[1] for x in tuple_test], labels=[x[0] for x in tuple_test], autopct='%1.1f%%', colors=[x[2] for x in tuple_test])
+        ax[i, 0].set_title(category + " class distribution")
+        ax[i, 1].bar([x[0] for x in tuple_test], [x[1] for x in tuple_test], color=[x[2] for x in tuple_test])
     plt.show()
 
 if __name__ == "__main__":
