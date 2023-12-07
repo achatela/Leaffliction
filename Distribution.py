@@ -35,6 +35,8 @@ def main():
 
     color_set = distinctipy.get_colors(highest * len(categories))
     i = 0
+    j = 0
+    fig, ax = plt.subplots(len(categories), 2)
     for category in categories:
         tuple_test = []
         for sub in arborescence[category]:
@@ -43,12 +45,11 @@ def main():
 
         tuple_test.sort(key=lambda x: x[1], reverse=True)
 
-        fig, ax = plt.subplots()
-        ax.pie([x[1] for x in tuple_test], labels=[x[0] for x in tuple_test], autopct='%1.1f%%', colors=[x[2] for x in tuple_test])
-        plt.title(category + " class distribution")
-        plt.show()
-        plt.bar([x[0] for x in tuple_test], [x[1] for x in tuple_test], color=[x[2] for x in tuple_test])
-        plt.show()
+        ax[j, 0].pie([x[1] for x in tuple_test], labels=[x[0] for x in tuple_test], autopct='%1.1f%%', colors=[x[2] for x in tuple_test])
+        ax[j, 0].set_title(category + " class distribution")
+        ax[j, 1].bar([x[0] for x in tuple_test], [x[1] for x in tuple_test], color=[x[2] for x in tuple_test])
+        j += 1
+    plt.show()
 
 if __name__ == "__main__":
     main()
