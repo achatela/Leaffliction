@@ -13,35 +13,36 @@ def change_contrast(img, level):
         return max(0, min(255, value))
     return img.point(contrast)
 
-def gaussian_blur(path):
+def gaussian_blur(path):    
     image = cv2.imread(path, 0)
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     gaussian_blur = cv2.GaussianBlur(gray_image, (5, 5), sigmaX=0)
     pcv.plot_image(gaussian_blur)
-    
+
 
 def canny_edges(path):
     image = cv2.imread(path, 0)
-    # image = Image.fromarray(image)
-    # enhancer = ImageEnhance.Contrast(image)
-    # img = enhancer.enhance(1.5)
-    # img = change_contrast(img, 100)
-    # img = np.array(img)
-
-    sobel = cv2.Sobel(image, ddepth=cv2.CV_32F, dx=1, dy=0, ksize=13)
-    # edges = cv2.Canny(image, threshold1=1, threshold2=120, L2gradient=False)
-    Hori = np.concatenate((image, sobel), axis=1) 
+    gaussian_img = pcv.gaussian_blur(img=image, ksize=(5, 5), sigma_x=1, sigma_y=1)
+    edges = cv2.Canny(gaussian_img, threshold1=15, threshold2=90, L2gradient=False)
+    Hori = np.concatenate((image, gaussian_img, edges), axis=1)
     
-    cv2.imshow('HORIZONTAL', Hori) 
+    cv2.imshow('HORIZONTAL', Hori)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     return ""
 
+def get_mask(path):
+    img = cv2.imread(path, 0)
+    device = 50
+    lp_img = pcv.laplace_filter(img, 1, device)
+    # mask, masked_img = pcv.threshold.custom_range(img=img, lower_thresh=[100], upper_thresh=[160], channel='gray')
+    pcv.plot_image(lp_img)
+
 def image_transformation(path):
-    # img_data= cv2.imread(path)
-    # pcv.plot_image(img_data)
-    gaussian_blur(path)
+    # leaf_mask(path)
+    # gaussian_blur(path)
     canny_edges(path)
+    get_mask(path)
 
 def check_path(path):
     if os.path.isdir(path):
