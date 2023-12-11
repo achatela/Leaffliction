@@ -1,39 +1,43 @@
-from PIL import Image, ImageFilter
-import numpy as np
+import matplotlib.pyplot as plt
+import imgaug.augmenters as iaa
 from skimage import transform
-from skimage.util import img_as_ubyte
-import os
+from PIL import Image
+import numpy as np
+import random
 import sys
+import os
 
 
 def flip_image(image):
-    return Image.fromarray(np.fliplr(image))
-
+	if random.randint(0, 1):
+		return image.transpose(Image.FLIP_LEFT_RIGHT)
+	else:
+		return image.transpose(Image.FLIP_TOP_BOTTOM)
 
 def rotate_image(image):
-   rotated_image = transform.rotate(image, 45) # Rotate by 45 degrees
-   return Image.fromarray(img_as_ubyte(rotated_image))
+	return image.rotate(random.randint(10, 350), expand=True)
 
+def skew_image(np_image):
+	tf = transform.AffineTransform(shear=0.5)
+	return transform.warp(np_image, tf.inverse)
 
-def skew_image(image):
-   skew_type = transform.AffineTransform(shear=np.pi/6) # Skew with a 30 degree angle
-   skewed_image = transform.warp(image, skew_type)
-   return Image.fromarray(img_as_ubyte(skewed_image))
-
-
-def shear_image(image):
-   shear_type = transform.AffineTransform(shear=np.pi/4) # Shear with a 45 degree angle
-   sheared_image = transform.warp(image, shear_type)
-   return Image.fromarray(img_as_ubyte(sheared_image))
-
+def shear_image(np_image):
+	tf = transform.AffineTransform(shear=0.2)
+	return transform.warp(np_image, tf)
 
 def crop_image(image):
-    return image.crop((image.width//4, image.height//4, 3*image.width//4, 3*image.height//4))  # Crop the center of the image
+	width, height = image.size
+	crop_width = random.randint(round(width*0.1), round(width*0.9))
+	crop_height = random.randint(round(height*0.1), round(height*0.9))
+	left = random.randint(0, width - crop_width)
+	upper = random.randint(0, height - crop_height)
+	right = left + crop_width
+	lower = upper + crop_height
+	return image.crop((left, upper, right, lower))
 
-
-def distort_image(image):
-    return image.filter(ImageFilter.BLUR)  # Example of a simple distortion
-
+def distort_image(np_image):
+	aug = iaa.PerspectiveTransform(scale=(0.1, 0.2))
+	return aug.augment_image(np_image)
 
 def main():
 	if len(sys.argv) != 2:
@@ -41,12 +45,12 @@ def main():
 
 	image_path = sys.argv[1]
 	image_dir, image_name = os.path.split(image_path)
-	image_name_no_ext = os.path.splitext(image_name)[0]
+	image_name = os.path.splitext(image_name)[0]
 
 	image = Image.open(image_path)
-	image_np = np.array(image)
+	np_image = np.array(image)
 
-	operations = [
+	augmentations = [
 		(flip_image, "Flip"),
 		(rotate_image, "Rotate"),
 		(skew_image, "Skew"),
@@ -55,13 +59,18 @@ def main():
 		(distort_image, "Distortion"),
 	]
 
-	augmented_dir = "augmented/"
-
-	for operation, suffix in operations:
-		output_image = operation(image_np if operation in [rotate_image, skew_image, shear_image] else image)
-		output_path = os.path.join(augmented_dir, f"{image_name_no_ext}_{suffix}.JPG")
-		output_image.save(output_path)
-
+	for function, name in augmentations:
+		if name == 'Flip' or name == 'Rotate' or name == 'Crop':
+			augmented_image = function(image)
+			augmented_image.show()
+			augmented_image.save(f'augmented/{image_name}_{name}.JPG')
+		else:
+			augmented_image = function(np_image)
+			plt.imshow(augmented_image)
+			plt.show()
+			if name != 'Distortion':
+				augmented_image = (augmented_image * 255).astype(np.uint8)
+			Image.fromarray(augmented_image).save(f'augmented/{image_name}_{name}.JPG')
 
 if __name__ == '__main__':
 	main()
