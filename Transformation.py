@@ -16,20 +16,27 @@ class Transformation:
     def __init__(self, path_to_file):
         self.path_type = self.check_path(path_to_file)
         self.original = self.open_original(path_to_file)
+        self.white_balanced_img = pcv.white_balance(self.original, 'max')
         self.contours_img = self.original.copy()
         self.augmented_img = self.augment_image()
 
-        self.grey_scale = self.open_greyscale(path_to_file)
+        self.canny_edges_img = 0
+
+
+        # gray_img = cv2.cvtColor(self.original, cv2.COLOR_BGR2GRAY)
+        # _, mask = cv2.threshold(gray_img, 85, 255, cv2.THRESH_BINARY)
+        # pcv.plot_image(mask)
+
+        self.grey_scale = pcv.rgb2gray(self.original)
         self.augmented_grey_scale = self.convert_augmented_grey_scale()
         self.gaussian_blur_img = 0
 
-        self.white_balanced_img = pcv.white_balance(self.original, 'hist', roi=[5,5,80,80])
         self.corrected_img = 0
 
-        ret, thresh = cv2.threshold(self.augmented_grey_scale, 127, 255, 0)
-        contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_L1)[-2:]
-        cv2.drawContours(self.contours_img, contours, -1, (0,255,0), 3)
-        pcv.plot_image(self.contours_img)
+        # ret, thresh = cv2.threshold(self.augmented_grey_scale, 127, 255, 0)
+        # contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_TC89_L1)[-2:]
+        # cv2.drawContours(self.contours_img, contours, -1, (0,255,0), 3)
+        # pcv.plot_image(self.contours_img)
         
         self.mask = 0
         self.b = 0
@@ -38,9 +45,14 @@ class Transformation:
         if self.path_type == 1:
             self.image_transformation()
 
+        # mask = cv2.bitwise_not(self.canny_edges_img)
+        # result = cv2.bitwise_and(self.original, self.original, mask=mask)
+        # pcv.plot_image(result)
+
+        pcv.plot_image(pcv.apply_mask(img=self.original, mask=self.canny_edges_img, mask_color='white'))
+
         pcv.plot_image(self.original)
         pcv.plot_image(self.white_balanced_img)
-        pcv.plot_image(self.corrected_img)
         pcv.plot_image(self.augmented_img)
         pcv.plot_image(self.gaussian_blur_img)
         pcv.plot_image(self.mask)
@@ -60,26 +72,22 @@ class Transformation:
     
 
     def color_correction(self):
-        ()
-        # card_mask = pcv.transform.find_color_card(rgb_img=self.white_balanced_img, radius=15)
-        # headers, card_matrix = pcv.transform.get_color_matrix(rgb_img=self.white_balanced_img, mask=card_mask)
-        # std_color_matrix = pcv.transform.std_color_matrix(pos=3)
-        # img_cc = pcv.transform.affine_color_correction(rgb_img=self.white_balanced_img, source_matrix=card_matrix, 
-        #                                        target_matrix=std_color_matrix)
-        # self.corrected_img = img_cc
+        threshold_light = pcv.threshold.binary(gray_img=self.gaussian_blur_img, threshold=160, object_type='light')
+        pcv.plot_image(threshold_light)
 
 
     def image_transformation(self):
-        self.color_correction()
         self.augment_image()
         self.gaussian_blur()
+        self.canny_edges()
+        self.color_correction()
         self.get_mask()
         # self.get_roi()
         self.get_img_mask()
 
 
     def augment_image(self):
-        img = self.original
+        img = self.white_balanced_img
         # converting to LAB color space
         lab= cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
         l_channel, a, b = cv2.split(lab)
@@ -112,7 +120,7 @@ class Transformation:
 
     def gaussian_blur(self):
         grey_img = self.augmented_grey_scale
-        gaussian_blur = cv2.GaussianBlur(grey_img, (13, 13), sigmaX=0)
+        gaussian_blur = cv2.GaussianBlur(grey_img, (11, 11), sigmaX=0)
         self.gaussian_blur_img = gaussian_blur
 
     def get_img_mask(self):
@@ -125,16 +133,11 @@ class Transformation:
         self.mask = label_img
         self.b = binary_global
 
-    def canny_edges(self, path):
-        image = cv2.imread(path, 0)
-        gaussian_img = pcv.gaussian_blur(img=image, ksize=(5, 5), sigma_x=1, sigma_y=1)
-        edges = cv2.Canny(gaussian_img, threshold1=15, threshold2=90, L2gradient=False)
-        Hori = np.concatenate((image, gaussian_img, edges), axis=1)
-        
-        cv2.imshow('HORIZONTAL', Hori)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        return ""
+    def canny_edges(self):
+        self.canny_edges_img = pcv.canny_edge_detect(self.gaussian_blur_img)
+        contours, _ = cv2.findContours(self.canny_edges_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cv2.drawContours(self.original, contours, -1, (0, 255, 0), 2)
+        pcv.plot_image(self.original)
 
 
     def get_mask(self):
