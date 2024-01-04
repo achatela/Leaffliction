@@ -20,6 +20,9 @@ class Transformation:
         self.contours_img = self.original.copy()
         self.augmented_img = self.augment_image()
 
+        self.mask = 0
+        self.binary_mask = 0
+
         self.canny_edges_contours = 0
         self.canny_edges_img = copy(self.original)
 
@@ -69,17 +72,29 @@ class Transformation:
         # find the green color 
         mask_green = cv2.inRange(hsv, (36,0,0), (86,255,255))
         # find the brown color
-        mask_brown = cv2.inRange(hsv, (8, 60, 20), (30, 255, 200))
+        mask_brown = cv2.inRange(hsv, (11, 60, 50), (30, 255, 255))
         # find the yellow color in the leaf
-        mask_yellow = cv2.inRange(hsv, (21, 39, 64), (40, 255, 255))
+        mask_yellow = cv2.inRange(hsv, (21, 39, 10), (40, 255, 255))
+        # find the orange color
+        mask_red = cv2.inRange(hsv, (1, 60, 0), (25, 255, 255))
 
         # find any of the three colors(green or brown or yellow) in the image
         mask = cv2.bitwise_or(mask_green, mask_brown)
         mask = cv2.bitwise_or(mask, mask_yellow)
+        mask = cv2.bitwise_or(mask, mask_red)
 
         # Bitwise-AND mask and original image
         res = cv2.bitwise_and(img,img, mask= mask)
+        for i in range(res.shape[0]):
+            for j in range(res.shape[1]):
+                if np.any(res[i, j] == [0, 0, 0]):
+                    res[i, j] = [255, 255 ,255]
+        self.mask = res
 
+        cv2.imshow("mask green", mask_green)
+        cv2.imshow("mask red", mask_red)
+        cv2.imshow("mask yelloz", mask_yellow)
+        cv2.imshow("mask brown", mask_brown)
         cv2.imshow("original", img)
         cv2.imshow("final image", res)
         cv2.waitKey(0)
@@ -111,6 +126,21 @@ class Transformation:
         # self.get_roi()
         # self.get_img_mask()
         self.extract_leaf_from_background()
+        self.create_binary_mask()
+
+
+    def create_binary_mask(self):
+        binary_mask = copy(self.mask)
+        for i in range(binary_mask.shape[0]):
+            for j in range(binary_mask.shape[1]):
+                if np.any(binary_mask[i, j] != [255,255, 255]):
+                    binary_mask[i, j] = [0, 0 ,0]
+                else:
+                    binary_mask[i, j] = [255, 255 ,255]
+        self.binary_mask = binary_mask
+        cv2.imshow("binary mask", self.binary_mask)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
 
     def augment_image(self):
