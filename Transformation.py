@@ -51,13 +51,35 @@ class Transformation:
 
         pcv.plot_image(pcv.apply_mask(img=self.original, mask=self.canny_edges_img, mask_color='white'))
 
-        pcv.plot_image(self.original)
-        pcv.plot_image(self.white_balanced_img)
-        pcv.plot_image(self.augmented_img)
-        pcv.plot_image(self.gaussian_blur_img)
-        pcv.plot_image(self.mask)
-        pcv.plot_image(self.b)
+        # pcv.plot_image(self.original)
+        # pcv.plot_image(self.white_balanced_img)
+        # pcv.plot_image(self.augmented_img)
+        # pcv.plot_image(self.gaussian_blur_img)
+        # pcv.plot_image(self.mask)
+        # pcv.plot_image(self.b)
 
+    def extract_leaf_from_background(self):
+        img = self.original
+        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+        # find the green color 
+        mask_green = cv2.inRange(hsv, (36,0,0), (86,255,255))
+        # find the brown color
+        mask_brown = cv2.inRange(hsv, (8, 60, 20), (30, 255, 200))
+        # find the yellow color in the leaf
+        mask_yellow = cv2.inRange(hsv, (21, 39, 64), (40, 255, 255))
+
+        # find any of the three colors(green or brown or yellow) in the image
+        mask = cv2.bitwise_or(mask_green, mask_brown)
+        mask = cv2.bitwise_or(mask, mask_yellow)
+
+        # Bitwise-AND mask and original image
+        res = cv2.bitwise_and(img,img, mask= mask)
+
+        cv2.imshow("original", img)
+        cv2.imshow("final image", res)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
     def convert_augmented_grey_scale(self):
         return cv2.cvtColor(self.augmented_img, cv2.COLOR_BGR2GRAY)
@@ -73,7 +95,7 @@ class Transformation:
 
     def color_correction(self):
         threshold_light = pcv.threshold.binary(gray_img=self.gaussian_blur_img, threshold=160, object_type='light')
-        pcv.plot_image(threshold_light)
+        # pcv.plot_image(threshold_light)
 
 
     def image_transformation(self):
@@ -84,6 +106,7 @@ class Transformation:
         self.get_mask()
         # self.get_roi()
         self.get_img_mask()
+        self.extract_leaf_from_background()
 
 
     def augment_image(self):
@@ -136,8 +159,8 @@ class Transformation:
     def canny_edges(self):
         self.canny_edges_img = pcv.canny_edge_detect(self.gaussian_blur_img)
         contours, _ = cv2.findContours(self.canny_edges_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        cv2.drawContours(self.original, contours, -1, (0, 255, 0), 2)
-        pcv.plot_image(self.original)
+        cv2.drawContours(self.canny_edges_img, contours, -1, (0, 255, 0), 2)
+        # pcv.plot_image(self.original)
 
 
     def get_mask(self):
