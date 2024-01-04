@@ -6,6 +6,7 @@ import os
 from plantcv import plantcv as pcv
 import cv2
 import numpy as np
+import pandas as pd
 from skimage.filters import threshold_otsu, try_all_threshold
 from skimage.morphology import closing, square
 from skimage.measure import label
@@ -128,6 +129,11 @@ class Transformation:
         self.create_binary_mask()
         self.get_roi()
         self.analyze_size()
+        pcv.params.debug = "plot"
+        hist_figure, hist_data = pcv.visualize.histogram(img=self.original, hist_data=True, title="Color Histogram")
+        hist_df = pd.DataFrame(hist_data)
+        hist_df.plot(kind='bar')
+
 
     def analyze_size(self):
         labeled_mask, num_seeds = pcv.create_labels(self.binary_mask)
