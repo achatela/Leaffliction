@@ -9,7 +9,7 @@ import numpy as np
 from skimage.filters import threshold_otsu, try_all_threshold
 from skimage.morphology import closing, square
 from skimage.measure import label
-
+from copy import copy
 
 class Transformation:
 
@@ -20,7 +20,8 @@ class Transformation:
         self.contours_img = self.original.copy()
         self.augmented_img = self.augment_image()
 
-        self.canny_edges_img = 0
+        self.canny_edges_contours = 0
+        self.canny_edges_img = copy(self.original)
 
 
         # gray_img = cv2.cvtColor(self.original, cv2.COLOR_BGR2GRAY)
@@ -45,11 +46,14 @@ class Transformation:
         if self.path_type == 1:
             self.image_transformation()
 
+        cv2.imshow("canny edges img", self.canny_edges_img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
         # mask = cv2.bitwise_not(self.canny_edges_img)
         # result = cv2.bitwise_and(self.original, self.original, mask=mask)
         # pcv.plot_image(result)
 
-        pcv.plot_image(pcv.apply_mask(img=self.original, mask=self.canny_edges_img, mask_color='white'))
+        # pcv.plot_image(pcv.apply_mask(img=self.original, mask=self.canny_edges_img, mask_color='white'))
 
         # pcv.plot_image(self.original)
         # pcv.plot_image(self.white_balanced_img)
@@ -105,7 +109,7 @@ class Transformation:
         self.color_correction()
         self.get_mask()
         # self.get_roi()
-        self.get_img_mask()
+        # self.get_img_mask()
         self.extract_leaf_from_background()
 
 
@@ -157,8 +161,8 @@ class Transformation:
         self.b = binary_global
 
     def canny_edges(self):
-        self.canny_edges_img = pcv.canny_edge_detect(self.gaussian_blur_img)
-        contours, _ = cv2.findContours(self.canny_edges_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        self.canny_edges_contours = pcv.canny_edge_detect(self.gaussian_blur_img)
+        contours, _ = cv2.findContours(self.canny_edges_contours, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cv2.drawContours(self.canny_edges_img, contours, -1, (0, 255, 0), 2)
         # pcv.plot_image(self.original)
 
