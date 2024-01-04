@@ -123,11 +123,18 @@ class Transformation:
         self.canny_edges()
         self.color_correction()
         self.get_mask()
-        # self.get_roi()
         # self.get_img_mask()
         self.extract_leaf_from_background()
         self.create_binary_mask()
+        self.get_roi()
+        self.analyze_size()
 
+    def analyze_size(self):
+        labeled_mask, num_seeds = pcv.create_labels(self.binary_mask)
+        shape_image = pcv.analyze.size(self.original, labeled_mask=labeled_mask)
+        cv2.imshow("analyze size", shape_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
     def create_binary_mask(self):
         binary_mask = copy(self.mask)
@@ -172,8 +179,16 @@ class Transformation:
             return 2
         
     def get_roi(self):
-        roi = pcv.roi.rectangle(img=self.original, x=10, y=10, h=244, w=244)
+        if len(self.binary_mask.shape) == 3:
+            self.binary_mask = cv2.cvtColor(self.binary_mask, cv2.COLOR_BGR2GRAY)
+        if self.original.shape[:2] != self.binary_mask.shape:
+            self.binary_mask = cv2.resize(self.binary_mask, (self.original.shape[1], self.original.shape[0]))
+
+        roi = cv2.bitwise_and(self.original, self.original, mask=self.binary_mask)
         self.roi = roi
+        cv2.imshow("roi", roi)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
     def gaussian_blur(self):
         grey_img = self.augmented_grey_scale
