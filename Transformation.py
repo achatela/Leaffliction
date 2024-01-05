@@ -11,6 +11,7 @@ from skimage.filters import threshold_otsu, try_all_threshold
 from skimage.morphology import closing, square
 from skimage.measure import label
 from copy import copy
+from rembg import remove
 
 class Transformation:
 
@@ -67,36 +68,38 @@ class Transformation:
         # pcv.plot_image(self.b)
 
     def extract_leaf_from_background(self):
-        img = self.original
-        hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        # img = self.original
+        # hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-        # find the green color 
-        mask_green = cv2.inRange(hsv, (36,0,0), (86,255,255))
-        # find the brown color
-        mask_brown = cv2.inRange(hsv, (11, 60, 50), (30, 255, 255))
-        # find the yellow color in the leaf
-        mask_yellow = cv2.inRange(hsv, (21, 39, 10), (40, 255, 255))
-        # find the orange color
-        mask_red = cv2.inRange(hsv, (1, 60, 0), (25, 255, 255))
+        # # find the green color 
+        # mask_green = cv2.inRange(hsv, (36,0,0), (86,255,255))
+        # # find the brown color
+        # mask_brown = cv2.inRange(hsv, (11, 60, 50), (30, 255, 255))
+        # # find the yellow color in the leaf
+        # mask_yellow = cv2.inRange(hsv, (21, 39, 10), (40, 255, 255))
+        # # find the orange color
+        # mask_red = cv2.inRange(hsv, (1, 60, 0), (25, 255, 255))
 
-        # find any of the three colors(green or brown or yellow) in the image
-        mask = cv2.bitwise_or(mask_green, mask_brown)
-        mask = cv2.bitwise_or(mask, mask_yellow)
-        mask = cv2.bitwise_or(mask, mask_red)
+        # # find any of the three colors(green or brown or yellow) in the image
+        # mask = cv2.bitwise_or(mask_green, mask_brown)
+        # mask = cv2.bitwise_or(mask, mask_yellow)
+        # mask = cv2.bitwise_or(mask, mask_red)
 
         # Bitwise-AND mask and original image
-        res = cv2.bitwise_and(img,img, mask= mask)
-        for i in range(res.shape[0]):
-            for j in range(res.shape[1]):
-                if np.any(res[i, j] == [0, 0, 0]):
-                    res[i, j] = [255, 255 ,255]
+        # res = cv2.bitwise_and(img,img, mask= mask)
+        # for i in range(res.shape[0]):
+        #     for j in range(res.shape[1]):
+        #         if np.any(res[i, j] == [0, 0, 0]):
+        #             res[i, j] = [255, 255 ,255]
+        img = copy(self.original)
+        res = remove(img)
         self.mask = res
 
-        cv2.imshow("mask green", mask_green)
-        cv2.imshow("mask red", mask_red)
-        cv2.imshow("mask yelloz", mask_yellow)
-        cv2.imshow("mask brown", mask_brown)
-        cv2.imshow("original", img)
+        # cv2.imshow("mask green", mask_green)
+        # cv2.imshow("mask red", mask_red)
+        # cv2.imshow("mask yelloz", mask_yellow)
+        # cv2.imshow("mask brown", mask_brown)
+        # cv2.imshow("original", img)
         cv2.imshow("final image", res)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
@@ -123,7 +126,6 @@ class Transformation:
         self.gaussian_blur()
         self.canny_edges()
         self.color_correction()
-        self.get_mask()
         # self.get_img_mask()
         self.extract_leaf_from_background()
         self.create_binary_mask()
@@ -216,10 +218,6 @@ class Transformation:
         contours, _ = cv2.findContours(self.canny_edges_contours, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cv2.drawContours(self.canny_edges_img, contours, -1, (0, 255, 0), 2)
         # pcv.plot_image(self.original)
-
-
-    def get_mask(self):
-       ()
 
 
 def main():
