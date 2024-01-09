@@ -23,7 +23,6 @@ class Transformation:
         self.augmented_img = self.augment_image()
         self.pseudolandmarks_img = 0
 
-        self.mask = 0
         self.binary_mask = 0
 
         self.canny_edges_contours = 0
@@ -39,19 +38,13 @@ class Transformation:
         self.b = 0
         self.roi = 0
         self.shape_image = 0
-
         if self.path_type == 1:
             self.image_transformation()
+        self.mask = cv2.cvtColor(self.mask, cv2.COLOR_BGR2RGB)
+        self.pseudolandmarks_img = cv2.cvtColor(self.pseudolandmarks_img, cv2.COLOR_BGR2RGB)
+        self.shape_image = cv2.cvtColor(self.shape_image, cv2.COLOR_BGR2RGB)
+        
 
-        cv2.imshow("Original", self.original)
-        cv2.imshow("Gaussan Blur", self.gaussian_blur_img)
-        cv2.imshow("Mask", self.mask)
-        cv2.imshow("Binary Mask", self.binary_mask)
-        cv2.imshow("Roi", self.roi)
-        cv2.imshow("Analyze Object", self.shape_image)
-        cv2.imshow("Pseudolandmarks", self.pseudolandmarks_img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
 
     def extract_leaf_from_background(self):
         img = copy(self.original)
@@ -78,9 +71,11 @@ class Transformation:
         self.get_roi()
         self.analyze_size()
         self.pseudolandmarks()
+
         hist_figure, hist_data = pcv.visualize.histogram(img=self.original, hist_data=True, title="Color Histogram")
-        hist_df = pd.DataFrame(hist_data)
-        hist_df.plot(kind='bar')
+        # plt.show()
+        # hist_df = pd.DataFrame(hist_data)
+        # hist_df.plot(kind='bar')
 
 
     def pseudolandmarks(self):
@@ -159,16 +154,6 @@ class Transformation:
         gaussian_blur = cv2.GaussianBlur(grey_img, (11, 11), sigmaX=0)
         self.gaussian_blur_img = gaussian_blur
 
-    def get_img_mask(self):
-        img = self.gaussian_blur_img
-        global_thresh = threshold_otsu(img)
-        binary_global = img < global_thresh
-        binary_global = closing(binary_global)
-        label_img = label(binary_global, background='grey', connectivity=2)
-        try_all_threshold(label_img)
-        self.mask = label_img
-        self.b = binary_global
-
     def canny_edges(self):
         self.canny_edges_contours = pcv.canny_edge_detect(self.gaussian_blur_img)
         contours, _ = cv2.findContours(self.canny_edges_contours, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -176,8 +161,42 @@ class Transformation:
 
 
 def main():
-    image = Transformation(sys.argv[1])
+    if len(sys.argv) < 2:
+        print("usage: python3 Transformation.py <input_img> or python3 Transformation.py <input_dir> <dest_dir>")
+        return
+    if '.JPG' in sys.argv[1]:
+        transformation = Transformation(sys.argv[1])
+        cv2.imshow("Original", transformation.original)
+        cv2.imshow("Gaussan Blur", transformation.gaussian_blur_img)
+        cv2.imshow("Mask", transformation.mask)
+        cv2.imshow("Binary Mask", transformation.binary_mask)
+        cv2.imshow("Analyze Object", transformation.shape_image)
+        cv2.imshow("Pseudolandmarks", transformation.pseudolandmarks_img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+    else:
+        if len(sys.argv) < 3:
+            print("usage: python3 Transformation.py <input_dir> <dest_dir>")
+            return
+        if not os.path.isdir(sys.argv[2]):
+            print("dest_dir is not a dir")
+            return
 
+        filenames = []
+        for path, subdirs, files in os.walk(sys.argv[1]):
+            for file in files:
+                if '.JPG' in file:
+                    file_path = os.path.join(path, file)
+                    file_path = file_path.replace('.JPG', '')
+                    transformation = Transformation(file_path + '.JPG')
+                    filename = file.replace('.JPG', '')
+                    Image.fromarray(transformation.gaussian_blur_img).save(sys.argv[2] + filename + '-gaussian.JPG')
+                    Image.fromarray(transformation.mask).save(sys.argv[2] + filename + '-mask.JPG')
+                    Image.fromarray(transformation.binary_mask).convert('RGB').save(sys.argv[2] + filename + '-binary-mask.JPG')
+                    Image.fromarray(transformation.shape_image).convert('RGB').save(sys.argv[2] + filename + '-analyze-object.JPG')
+                    Image.fromarray(transformation.pseudolandmarks_img).convert('RGB').save(sys.argv[2] + filename + '-pseudolandmarks.JPG')
+
+        
 if __name__ == "__main__":
     main()
 
