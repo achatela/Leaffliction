@@ -3,6 +3,7 @@ import imgaug.augmenters as iaa
 from skimage import transform
 from PIL import Image
 import numpy as np
+
 import random
 import sys
 import os
@@ -58,19 +59,19 @@ def augment_images(image_path, path_dest):
 	for function, name in augmentations:
 		if name == 'Flip' or name == 'Rotate' or name == 'Crop':
 			augmented_image = function(image)
-			# augmented_image.show()
 			if path_dest == "":
+				augmented_image.show()
 				augmented_image.save(f'augmented/{image_name}_{name}.JPG')
 			else:
 				augmented_image.save(f'{path_dest}{image_name}_{name}.JPG')
 		else:
 			augmented_image = function(np_image)
-			# plt.imshow(augmented_image)
-			# plt.show()
 			if name != 'Distortion':
 				augmented_image = (augmented_image * 255).astype(np.uint8)
 			if path_dest == "":
 				Image.fromarray(augmented_image).save(f'augmented/{image_name}_{name}.JPG')
+				plt.imshow(augmented_image)
+				plt.show()
 			else:
 				Image.fromarray(augmented_image).save(f'{path_dest}{image_name}_{name}.JPG')
 

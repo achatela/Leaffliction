@@ -160,12 +160,9 @@ class Transformation:
         cv2.drawContours(self.canny_edges_img, contours, -1, (0, 255, 0), 2)
 
 
-def main():
-    if len(sys.argv) < 2:
-        print("usage: python3 Transformation.py <input_img> or python3 Transformation.py <input_dir> <dest_dir>")
-        return
-    if '.JPG' in sys.argv[1]:
-        transformation = Transformation(sys.argv[1])
+def create_transformations(arg1, arg2):
+    if '.JPG' in arg1:
+        transformation = Transformation(arg1)
         cv2.imshow("Original", transformation.original)
         cv2.imshow("Gaussan Blur", transformation.gaussian_blur_img)
         cv2.imshow("Mask", transformation.mask)
@@ -178,24 +175,32 @@ def main():
         if len(sys.argv) < 3:
             print("usage: python3 Transformation.py <input_dir> <dest_dir>")
             return
-        if not os.path.isdir(sys.argv[2]):
+        if not os.path.isdir(arg2):
             print("dest_dir is not a dir")
             return
 
         filenames = []
-        for path, subdirs, files in os.walk(sys.argv[1]):
+        for path, subdirs, files in os.walk(arg1):
             for file in files:
                 if '.JPG' in file:
                     file_path = os.path.join(path, file)
                     file_path = file_path.replace('.JPG', '')
                     transformation = Transformation(file_path + '.JPG')
                     filename = file.replace('.JPG', '')
-                    Image.fromarray(transformation.gaussian_blur_img).save(sys.argv[2] + filename + '-gaussian.JPG')
-                    Image.fromarray(transformation.mask).save(sys.argv[2] + filename + '-mask.JPG')
-                    Image.fromarray(transformation.binary_mask).convert('RGB').save(sys.argv[2] + filename + '-binary-mask.JPG')
-                    Image.fromarray(transformation.shape_image).convert('RGB').save(sys.argv[2] + filename + '-analyze-object.JPG')
-                    Image.fromarray(transformation.pseudolandmarks_img).convert('RGB').save(sys.argv[2] + filename + '-pseudolandmarks.JPG')
+                    Image.fromarray(transformation.gaussian_blur_img).save(arg2 + filename + '-gaussian.JPG')
+                    Image.fromarray(transformation.mask).save(arg2 + filename + '-mask.JPG')
+                    Image.fromarray(transformation.binary_mask).convert('RGB').save(arg2 + filename + '-binary-mask.JPG')
+                    Image.fromarray(transformation.shape_image).convert('RGB').save(arg2 + filename + '-analyze-object.JPG')
+                    Image.fromarray(transformation.pseudolandmarks_img).convert('RGB').save(arg2 + filename + '-pseudolandmarks.JPG')
 
+def main():
+    if len(sys.argv) < 2:
+        print("usage: python3 Transformation.py <input_img> or python3 Transformation.py <input_dir> <dest_dir>")
+        return
+    if len(sys.argv) == 2:
+        create_transformations(sys.argv[1], "")
+    else:
+        create_transformations(sys.argv[1], sys.argv[2])
         
 if __name__ == "__main__":
     main()

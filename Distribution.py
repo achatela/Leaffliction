@@ -22,15 +22,21 @@ class Distribution:
 
 
     def fill_augmentation_needed(self):
+        max_len_dir = 0
+        for category in self.categories:
+            for subdirectory in self.arborescence[category]:
+                if len(self.arborescence[category][subdirectory]) > max_len_dir:
+                    max_len_dir = len(self.arborescence[category][subdirectory])
+
         for category in self.categories:
             len_name_list = [] # array of tuples: (subdirectory_name, number of images)
             for subdirectory in self.arborescence[category]:
                 len_name_list.append((subdirectory, len(self.arborescence[category][subdirectory])))
             
-            max_tuple = max(len_name_list, key=lambda x: x[1])
-            len_name_list.remove(max_tuple)
+            # max_tuple = max(len_name_list, key=lambda x: x[1])
+            # len_name_list.remove(max_tuple)
             for tup in len_name_list:
-                self.augmentations_needed.append((tup[0], max_tuple[1] - tup[1]))
+                self.augmentations_needed.append((tup[0], max_len_dir - tup[1]))
 
 
     def parse_files(self):

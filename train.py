@@ -1,8 +1,10 @@
 from Augmentation import augment_images
 from Distribution import Distribution
+from Transformation import create_transformations
 import sys
 import os
 import random
+import shutil
 import tensorflow as tf
 from tensorflow.keras import layers, models
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -26,7 +28,7 @@ def create_model(input_shape, num_classes):
 
     return model
 
-def train_model(train_data_dir, val_data_dir, batch_size, epochs, model_save_path):
+def train_model(train_data_dir, val_data_dir, batch_size, epochs, model_save_path, num_classes=8):
     # Image data generators for data augmentation
     train_datagen = ImageDataGenerator(rescale=1./255,
                                        shear_range=0.2,
@@ -51,7 +53,7 @@ def train_model(train_data_dir, val_data_dir, batch_size, epochs, model_save_pat
         class_mode='categorical'
     )
 
-    num_classes = len(train_generator.class_indices)
+    # num_classes = len(train_generator.class_indices)
 
     model = create_model((150, 150, 3), num_classes)
 
@@ -87,29 +89,42 @@ def dataset_augmentation(augmentations_needed):
 
 
 def main():
-    if len(sys.argv) != 2:
-        sys.exit('usage: python3 train.py <directory_path>')
-
     if not os.path.exists('./train_augmented/'):
         os.mkdir('./train_augmented/')
 
     distribution = Distribution(sys.argv[1])
     augmentations_needed = distribution.augmentations_needed
+    new_subdirectories = []
     for augmentation in augmentations_needed:
+        new_subdirectories.append(augmentation[0])
         directory_dest = "./train_augmented/" + augmentation[0] + "/"
+        if os.path.exists(directory_dest):
+            os.system(f'rm -rf {directory_dest}')
         if not os.path.exists(directory_dest):
             os.mkdir(directory_dest)
+            for image in os.listdir(sys.argv[1] + augmentation[0]):
+                os.system(f'cp \"{sys.argv[1] + augmentation[0]}/{image}\" {directory_dest}')
         image_in_dir = len(distribution.arborescence[augmentation[0].split('_')[0]][augmentation[0]])
-        augmentations_needed[augmentations_needed.index(augmentation)] = (sys.argv[1] + augmentation[0], augmentation[1] // 6, image_in_dir, directory_dest)        
-    print(augmentations_needed)
+        augmentations_needed[augmentations_needed.index(augmentation)] = (sys.argv[1] + augmentation[0], augmentation[1] // 6, image_in_dir, directory_dest)
+    for subdirectory in distribution.subdirectories:
+        if subdirectory not in new_subdirectories:
+            os.system(f'cp -r \"{sys.argv[1] + subdirectory}\" ./train_augmented/')
     dataset_augmentation(augmentations_needed)
 
 if __name__ == '__main__':
     train_data_directory = './train_augmented/'  # Update with your augmented dataset directory
-    val_data_directory = './validation_data/'  # Update with your validation dataset directory
-    batch_size = 32
+    val_data_directory = '../images/'  # Update with your validation dataset directory
+    batch_size = 320
     epochs = 10
     model_save_path = 'leaf_disease_model.h5'
-
-    main()
-    train_model(train_data_directory, val_data_directory, batch_size, epochs, model_save_path)
+    if len(sys.argv) < 2:
+        sys.exit('usage: python3 train.py <directory_path> <flag> -t for training, -a for augmentation')
+    if sys.argv[1] == '--train':
+        train_model(train_data_directory, val_data_directory, batch_size, epochs, model_save_path)
+    elif sys.argv[1] == '--zip':
+        shutil.make_archive('dataset', 'zip', "./train_augmented/")
+    elif sys.argv[2] == '--augment':
+        main()
+    elif sys.argv[2] == '--transform':
+        create_transformations(sys.argv[1], "./train_augmented/" + sys.argv[1].split('/')[-1] + '/')
+        # shutil.make_archive('dataset', 'zip', "./train_augmented/")
