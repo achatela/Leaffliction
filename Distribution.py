@@ -31,7 +31,6 @@ class Distribution:
             len_name_list.remove(max_tuple)
             for tup in len_name_list:
                 self.augmentations_needed.append((tup[0], max_tuple[1] - tup[1]))
-            print(max_tuple[1])
 
 
     def parse_files(self):
