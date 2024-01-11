@@ -39,7 +39,7 @@ def distort_image(np_image):
 	aug = iaa.PerspectiveTransform(scale=(0.1, 0.2))
 	return aug.augment_image(np_image)
 
-def augment_images(image_path):
+def augment_images(image_path, path_dest):
 	image_dir, image_name = os.path.split(image_path)
 	image_name = os.path.splitext(image_name)[0]
 
@@ -58,21 +58,27 @@ def augment_images(image_path):
 	for function, name in augmentations:
 		if name == 'Flip' or name == 'Rotate' or name == 'Crop':
 			augmented_image = function(image)
-			augmented_image.show()
-			augmented_image.save(f'augmented/{image_name}_{name}.JPG')
+			# augmented_image.show()
+			if path_dest == "":
+				augmented_image.save(f'augmented/{image_name}_{name}.JPG')
+			else:
+				augmented_image.save(f'{path_dest}{image_name}_{name}.JPG')
 		else:
 			augmented_image = function(np_image)
-			plt.imshow(augmented_image)
-			plt.show()
+			# plt.imshow(augmented_image)
+			# plt.show()
 			if name != 'Distortion':
 				augmented_image = (augmented_image * 255).astype(np.uint8)
-			Image.fromarray(augmented_image).save(f'augmented/{image_name}_{name}.JPG')
+			if path_dest == "":
+				Image.fromarray(augmented_image).save(f'augmented/{image_name}_{name}.JPG')
+			else:
+				Image.fromarray(augmented_image).save(f'{path_dest}{image_name}_{name}.JPG')
 
 def main():
 	if len(sys.argv) != 2:
 		sys.exit('wrong number of arguments')
 
-	augment_images(sys.argv[1])
+	augment_images(sys.argv[1], "")
 	
 
 if __name__ == '__main__':
