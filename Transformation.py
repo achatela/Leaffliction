@@ -136,11 +136,9 @@ class Transformation:
         except:
             return 2
 
-
-
-def main():
-    if len(sys.argv) == 2:
-        file_path = sys.argv[1]
+def create_transformations(argv):
+    if len(argv) == 2:
+        file_path = argv[1]
         if not os.path.exists(file_path):
             sys.exit(f'"{file_path}" does not exist')
         file_name, file_ext = os.path.splitext(file_path)
@@ -159,19 +157,19 @@ def main():
         cv2.imshow("Canny Edges", transformation.canny_edges_img)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
-    elif len(sys.argv) == 3:
-        src_dir = sys.argv[1]
+    elif len(argv) == 3:
+        src_dir = argv[1]
         if not os.path.exists(src_dir):
             sys.exit(f'"{src_dir}" does not exist')
         if not os.path.isdir(src_dir):
             sys.exit(f'"{src_dir}" is not a directory')
-        dst_dir = sys.argv[2]
+        dst_dir = argv[2]
         if os.path.exists(dst_dir):
             if not os.path.isdir(dst_dir):
                 sys.exit(f'"{dst_dir}" is not a directory')
         else:
             os.mkdir(dst_dir)
-        for file in os.listdir(sys.argv[1]):
+        for file in os.listdir(argv[1]):
             file_name, file_ext = os.path.splitext(file)
             file_path = os.path.join(src_dir, file)
             if file_ext != '.JPG' or not os.path.isfile(file_path):
@@ -193,5 +191,5 @@ def main():
         sys.exit('usage: python3 Transformation.py <input_img> or python3 Transformation.py <input_dir> <dest_dir>')
         
 if __name__ == '__main__':
-    main()
+    create_transformations(sys.argv)
 
