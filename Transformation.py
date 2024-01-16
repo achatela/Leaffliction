@@ -141,7 +141,7 @@ def create_transformations(argv):
         file_path = argv[1]
         if not os.path.exists(file_path):
             sys.exit(f'"{file_path}" does not exist')
-        file_name, file_ext = os.path.splitext(file_path)
+        _, file_ext = os.path.splitext(file_path)
         if file_ext != '.JPG' or not os.path.isfile(file_path):
             sys.exit(f'"{file_path}" is not a JPG file')
         try:

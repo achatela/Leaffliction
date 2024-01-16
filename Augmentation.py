@@ -16,20 +16,41 @@ def flip_image(image):
 		return image.transpose(Image.FLIP_TOP_BOTTOM)
 
 def rotate_image(image):
-	return image.rotate(random.randint(10, 350), expand=True)
+	if random.randint(0, 1):
+		degrees = random.randint(10, 90)
+	else:
+		degrees = random.randint(-90, -10)
+	return image.rotate(degrees, expand=True)
 
-def skew_image(np_image):
-	tf = transform.AffineTransform(shear=0.5)
-	return transform.warp(np_image, tf.inverse)
+def skew_image(image):
+	if random.randint(0, 1):
+		skew_factor_x = random.randint(1, 5) / 10
+	else:
+		skew_factor_x = random.randint(-5, -1) / 10
+	skew_factor_y = 0
 
-def shear_image(np_image):
-	tf = transform.AffineTransform(shear=0.2)
-	return transform.warp(np_image, tf)
+	matrix = (1, skew_factor_x, 0, skew_factor_y, 1, 0)
+
+	return image.transform(image.size, Image.AFFINE, matrix, resample=Image.BICUBIC)
+
+def shear_image(image):
+	shear_factor_x = 0
+	if random.randint(0, 1):
+		shear_factor_y = random.randint(1, 5) / 10
+	else:
+		shear_factor_y = random.randint(-5, -1) / 10
+
+	return image.transform(
+		image.size, 
+		Image.AFFINE, 
+		(1, shear_factor_x, 0, shear_factor_y, 1, 0),
+		resample=Image.BICUBIC
+	)
 
 def crop_image(image):
 	width, height = image.size
-	crop_width = random.randint(round(width*0.1), round(width*0.9))
-	crop_height = random.randint(round(height*0.1), round(height*0.9))
+	crop_width = random.randint(round(width*0.5), round(width*0.8))
+	crop_height = random.randint(round(height*0.5), round(height*0.8))
 	left = random.randint(0, width - crop_width)
 	upper = random.randint(0, height - crop_height)
 	right = left + crop_width
@@ -37,15 +58,23 @@ def crop_image(image):
 	return image.crop((left, upper, right, lower))
 
 def distort_image(np_image):
-	aug = iaa.PerspectiveTransform(scale=(0.1, 0.2))
+	aug = iaa.PerspectiveTransform(scale=(0.1, 0.16))
 	return aug.augment_image(np_image)
 
 def augment_images(image_path, path_dest):
 	image_dir, image_name = os.path.split(image_path)
-	image_name = os.path.splitext(image_name)[0]
+	image_name, image_ext = os.path.splitext(image_name)
+	print(image_name)
 
-	image = Image.open(image_path)
-	np_image = np.array(image)
+	if not os.path.exists(image_path):
+		sys.exit(f'"{image_path}" does not exist')
+	if image_ext != '.JPG':
+		sys.exit(f'"{image_path}" is not a JPG file')
+	try:
+		image = Image.open(image_path)
+		np_image = np.array(image)
+	except:
+		sys.exit(f'"{image_path}" is not a JPG file')
 
 	augmentations = [
 		(flip_image, "Flip"),
@@ -57,7 +86,7 @@ def augment_images(image_path, path_dest):
 	]
 
 	for function, name in augmentations:
-		if name == 'Flip' or name == 'Rotate' or name == 'Crop':
+		if name == 'Flip' or name == 'Rotate' or name == 'Skew' or name == 'Shear' or name == 'Crop':
 			augmented_image = function(image)
 			if path_dest == "":
 				augmented_image.show()
