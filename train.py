@@ -111,6 +111,7 @@ def main():
             os.system(f'cp -r \"{sys.argv[1] + subdirectory}\" ./train_augmented/')
     dataset_augmentation(augmentations_needed)
 
+
 if __name__ == '__main__':
     train_data_directory = './train_augmented/'  # Update with your augmented dataset directory
     val_data_directory = '../images/'  # Update with your validation dataset directory
