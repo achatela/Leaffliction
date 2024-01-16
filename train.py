@@ -30,10 +30,7 @@ def create_model(input_shape, num_classes):
 
 def train_model(train_data_dir, val_data_dir, batch_size, epochs, model_save_path, num_classes=8):
     # Image data generators for data augmentation
-    train_datagen = ImageDataGenerator(rescale=1./255,
-                                       shear_range=0.2,
-                                       zoom_range=0.2,
-                                       horizontal_flip=True)
+    train_datagen = ImageDataGenerator(rescale=1./255)
     
     val_datagen = ImageDataGenerator(rescale=1./255)
 
@@ -42,7 +39,6 @@ def train_model(train_data_dir, val_data_dir, batch_size, epochs, model_save_pat
         train_data_dir,
         target_size=(150, 150),
         batch_size=batch_size,
-        class_mode='categorical'
     )
 
     # Flow validation images in batches using val_datagen generator
@@ -50,7 +46,6 @@ def train_model(train_data_dir, val_data_dir, batch_size, epochs, model_save_pat
         val_data_dir,
         target_size=(150, 150),
         batch_size=batch_size,
-        class_mode='categorical'
     )
 
     # num_classes = len(train_generator.class_indices)
@@ -92,6 +87,9 @@ def main():
     if not os.path.exists('./train_augmented/'):
         os.mkdir('./train_augmented/')
 
+    if sys.argv[1][-1] != '/':
+        sys.argv[1] += '/'
+
     distribution = Distribution(sys.argv[1])
     augmentations_needed = distribution.augmentations_needed
     new_subdirectories = []
@@ -102,7 +100,7 @@ def main():
             os.system(f'rm -rf {directory_dest}')
         if not os.path.exists(directory_dest):
             os.mkdir(directory_dest)
-            for image in os.listdir(sys.argv[1] + augmentation[0]):
+            for image in os.listdir(os.path.join(sys.argv[1],augmentation[0])):
                 os.system(f'cp \"{sys.argv[1] + augmentation[0]}/{image}\" {directory_dest}')
         image_in_dir = len(distribution.arborescence[augmentation[0].split('_')[0]][augmentation[0]])
         augmentations_needed[augmentations_needed.index(augmentation)] = (sys.argv[1] + augmentation[0], augmentation[1] // 6, image_in_dir, directory_dest)
@@ -113,7 +111,7 @@ def main():
 
 
 if __name__ == '__main__':
-    train_data_directory = './train_augmented/'  # Update with your augmented dataset directory
+    train_data_directory = '../augmented_dataset/'  # Update with your augmented dataset directory
     val_data_directory = '../images/'  # Update with your validation dataset directory
     batch_size = 320
     epochs = 10
@@ -127,5 +125,5 @@ if __name__ == '__main__':
     elif sys.argv[2] == '--augment':
         main()
     elif sys.argv[2] == '--transform':
-        create_transformations(sys.argv[1], "./train_augmented/" + sys.argv[1].split('/')[-1] + '/')
+        create_transformations(["", sys.argv[1], "./train_augmented/" + sys.argv[1].split('/')[-1]])
         # shutil.make_archive('dataset', 'zip', "./train_augmented/")

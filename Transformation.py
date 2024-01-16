@@ -182,7 +182,7 @@ def create_transformations(argv):
                 continue
             transformed_file_path_prefix = os.path.join(dst_dir, file_name)
             Image.fromarray(transformation.gaussian_blur_img).save(transformed_file_path_prefix + '-gaussian.JPG')
-            Image.fromarray(transformation.mask).save(transformed_file_path_prefix + '-mask.JPG')
+            Image.fromarray(transformation.mask).convert('RGB').save(transformed_file_path_prefix + '-mask.JPG')
             Image.fromarray(transformation.binary_mask).convert('RGB').save(transformed_file_path_prefix + '-binary-mask.JPG')
             Image.fromarray(transformation.shape_image).convert('RGB').save(transformed_file_path_prefix + '-analyze-object.JPG')
             Image.fromarray(transformation.pseudolandmarks_img).convert('RGB').save(transformed_file_path_prefix + '-pseudolandmarks.JPG')
