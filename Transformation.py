@@ -72,7 +72,7 @@ class Transformation:
         self.analyze_size()
         self.pseudolandmarks()
 
-        hist_figure, hist_data = pcv.visualize.histogram(img=self.original, hist_data=True, title="Color Histogram")
+        hist_figure, hist_data = pcv.visualize.histogram(img=self.original, hist_data=True, title='Color Histogram')
         # plt.show()
         # hist_df = pd.DataFrame(hist_data)
         # hist_df.plot(kind='bar')
@@ -80,7 +80,7 @@ class Transformation:
 
     def pseudolandmarks(self):
         img = copy(self.original)
-        top, bottom, center_v = pcv.homology.x_axis_pseudolandmarks(img=img, mask=self.binary_mask, label="default")
+        top, bottom, center_v = pcv.homology.x_axis_pseudolandmarks(img=img, mask=self.binary_mask, label='default')
 
         # Draw points on the image
         radius = 5  # Adjust as needed
@@ -160,9 +160,18 @@ class Transformation:
         cv2.drawContours(self.canny_edges_img, contours, -1, (0, 255, 0), 2)
 
 
-def create_transformations(arg1, arg2):
-    if '.JPG' in arg1:
-        transformation = Transformation(arg1)
+def main():
+    if len(sys.argv) == 2:
+        file_path = sys.argv[1]
+        if not os.path.exists(file_path):
+            sys.exit(f'"{file_path}" does not exist')
+        file_name, file_ext = os.path.splitext(file)
+        if file_ext != '.JPG' or not os.path.isfile(file_path):
+            sys.exit(f'"{file_path}" is not a JPG file')
+        try:
+            transformation = Transformation(file_path)
+        except:
+            sys.exit(f'"{file_path}" is not a JPG file')
         cv2.imshow("Original", transformation.original)
         cv2.imshow("Gaussan Blur", transformation.gaussian_blur_img)
         cv2.imshow("Mask", transformation.mask)
@@ -171,37 +180,38 @@ def create_transformations(arg1, arg2):
         cv2.imshow("Pseudolandmarks", transformation.pseudolandmarks_img)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+    elif len(sys.argv) == 3:
+        src_dir = sys.argv[1]
+        if not os.path.exists(src_dir):
+            sys.exit(f'"{src_dir}" does not exist')
+        if not os.path.isdir(src_dir):
+            sys.exit(f'"{src_dir}" is not a directory')
+        dst_dir = sys.argv[2]
+        if os.path.exists(dst_dir):
+            if not os.path.isdir(dst_dir):
+                sys.exit(f'"{dst_dir}" is not a directory')
+        else:
+            os.mkdir(dst_dir)
+        for file in os.listdir(sys.argv[1]):
+            file_name, file_ext = os.path.splitext(file)
+            file_path = os.path.join(src_dir, file)
+            if file_ext != '.JPG' or not os.path.isfile(file_path):
+                print(f'"{file}" is not a JPG file')
+                continue
+            try:
+                transformation = Transformation(file_path)
+            except:
+                print(f'"{file}" is not a JPG file')
+                continue
+            transformed_file_path_prefix = os.path.join(dst_dir, file_name)
+            Image.fromarray(transformation.gaussian_blur_img).save(transformed_file_path_prefix + '-gaussian.JPG')
+            Image.fromarray(transformation.mask).save(transformed_file_path_prefix + '-mask.JPG')
+            Image.fromarray(transformation.binary_mask).convert('RGB').save(transformed_file_path_prefix + '-binary-mask.JPG')
+            Image.fromarray(transformation.shape_image).convert('RGB').save(transformed_file_path_prefix + '-analyze-object.JPG')
+            Image.fromarray(transformation.pseudolandmarks_img).convert('RGB').save(transformed_file_path_prefix + '-pseudolandmarks.JPG')
     else:
-        if len(sys.argv) < 3:
-            print("usage: python3 Transformation.py <input_dir> <dest_dir>")
-            return
-        if not os.path.isdir(arg2):
-            print("dest_dir is not a dir")
-            return
-
-        filenames = []
-        for path, subdirs, files in os.walk(arg1):
-            for file in files:
-                if '.JPG' in file:
-                    file_path = os.path.join(path, file)
-                    file_path = file_path.replace('.JPG', '')
-                    transformation = Transformation(file_path + '.JPG')
-                    filename = file.replace('.JPG', '')
-                    Image.fromarray(transformation.gaussian_blur_img).save(arg2 + filename + '-gaussian.JPG')
-                    Image.fromarray(transformation.mask).save(arg2 + filename + '-mask.JPG')
-                    Image.fromarray(transformation.binary_mask).convert('RGB').save(arg2 + filename + '-binary-mask.JPG')
-                    Image.fromarray(transformation.shape_image).convert('RGB').save(arg2 + filename + '-analyze-object.JPG')
-                    Image.fromarray(transformation.pseudolandmarks_img).convert('RGB').save(arg2 + filename + '-pseudolandmarks.JPG')
-
-def main():
-    if len(sys.argv) < 2:
-        print("usage: python3 Transformation.py <input_img> or python3 Transformation.py <input_dir> <dest_dir>")
-        return
-    if len(sys.argv) == 2:
-        create_transformations(sys.argv[1], "")
-    else:
-        create_transformations(sys.argv[1], sys.argv[2])
+        sys.exit('usage: python3 Transformation.py <input_img> or python3 Transformation.py <input_dir> <dest_dir>')
         
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
 
