@@ -7,3 +7,4 @@ pillow
 plantcv
 rembg
 shutils
+flake8
