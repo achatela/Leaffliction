@@ -76,7 +76,7 @@ class Distribution:
 def plot_images(distribution):
     try:
         color_set = iter(distinctipy.get_colors(distribution.highest * len(distribution.categories)))
-        fig, ax = plt.subplots(len(distribution.categories), 2)
+        fig, ax = plt.subplots(len(distribution.categories), 2, squeeze=False)
 
         for i, category in enumerate(distribution.categories):
             tuple_test = []

@@ -8,3 +8,4 @@ plantcv
 rembg
 shutils
 flake8
+scikit-learn

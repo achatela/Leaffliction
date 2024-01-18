@@ -107,6 +107,12 @@ def augment_images(image_path, path_dest):
 def main():
 	if len(sys.argv) != 2:
 		sys.exit('wrong number of arguments')
+	if not os.path.exists('./augmented'):
+		os.system('rm -rf ./augmented')
+		os.mkdir('./augmented/')
+	else:
+		os.system('rm -rf ./augmented')
+		os.mkdir('./augmented/')
 
 	augment_images(sys.argv[1], "")
 	
