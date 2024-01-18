@@ -11,12 +11,22 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 def create_model(input_shape, num_classes):
     model = models.Sequential()
+    # Conv2d explication : https://towardsdatascience.com/conv2d-to-finally-understand-what-happens-in-the-forward-pass-1bbaafb0b148
+    # MaxPooling2D schema : https://media.geeksforgeeks.org/wp-content/uploads/Screenshot-from-2017-08-15-17-04-02.png
+    # Flatten rend l'image en 1D : https://i.stack.imgur.com/rx3X4.png
+    # Dense reseau de neurone tous connectes entre eux : https://i.stack.imgur.com/Gdpz7.png
+    # Dropout cree un nouveau layer avec des neurones qui ont une probabilité de 0.5 d'être désactivés
+    # relu = fonction qui change les nombres negatifs en 0
+
     model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=input_shape))
     model.add(layers.MaxPooling2D((2, 2)))
+
     model.add(layers.Conv2D(64, (3, 3), activation='relu'))
     model.add(layers.MaxPooling2D((2, 2)))
+
     model.add(layers.Conv2D(128, (3, 3), activation='relu'))
     model.add(layers.MaxPooling2D((2, 2)))
+
     model.add(layers.Flatten())
     model.add(layers.Dense(128, activation='relu'))
     model.add(layers.Dropout(0.5))
