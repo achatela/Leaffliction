@@ -50,11 +50,9 @@ def validation_set_prediction(model, validation_path):
             shuffle=False
         )
         prediction = model.predict(train_generator)
-        print(prediction[0])
-
         accuracy = accuracy_score(train_generator.labels,
                                   np.argmax(prediction, axis=1))
-        print("Accuracy: ", accuracy)
+        print("\nAccuracy: ", accuracy)
     except Exception as e:
         sys.exit(f"Validation error : {e}")
 
